@@ -1,0 +1,1663 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ali Tarek — لوحة تطوير الذات</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{color-scheme: dark;}
+    html, body { font-family: 'Cairo', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .glass { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); backdrop-filter: blur(10px); }
+    .subtle { color: rgba(255,255,255,.78); }
+    .muted { color: rgba(255,255,255,.60); }
+    .ring-soft { box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset; }
+    input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 999px; background: white; border: 2px solid rgba(0,0,0,.35); }
+    input[type="range"] { accent-color: #a78bfa; }
+    .toast { animation: pop .2s ease-out; }
+    @keyframes pop { from { transform: translateY(8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+    @media print { .no-print{display:none !important} body{background:#fff !important; color:#111 !important} }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-violet-950 text-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- Header -->
+    <header class="no-print">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div class="flex items-start gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-violet-500/20 ring-soft flex items-center justify-center">
+            <span class="text-xl font-extrabold">AT</span>
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              <span id="profileName">Ali tarek</span>
+              <span class="muted text-base font-semibold">— لوحة تطوير الذات</span>
+            </h1>
+            <p class="subtle text-sm sm:text-base">إيمان + رياضة + مجتمع + نفس — علشان تبني أفضل نسخة منك.</p>
+            <p class="muted text-xs sm:text-sm mt-1">
+              <span id="todayStr"></span>
+              <span class="mx-2">•</span>
+              <span>بياناتك محفوظة محليًا على جهازك فقط</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnOpenProfile" class="px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">تعديل بياناتي</button>
+          <button id="btnBackup" class="px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">نسخ احتياطي</button>
+          <button id="btnRestore" class="px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">استيراد</button>
+          <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-500/20 border border-rose-400/25 hover:bg-rose-500/30 transition text-sm font-semibold">إعادة ضبط</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <nav class="mt-5 flex flex-wrap gap-2">
+        <button data-tab="dashboard" class="tab px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">لوحة التحكم</button>
+        <button data-tab="checkin" class="tab px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">تقييم دوري</button>
+        <button data-tab="habits" class="tab px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">متابعة العادات</button>
+        <button data-tab="emotions" class="tab px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">جلسة مشاعر</button>
+        <button data-tab="history" class="tab px-3 py-2 rounded-xl glass hover:bg-white/10 transition text-sm font-semibold">سجلّي</button>
+      </nav>
+    </header>
+
+    <!-- Quick cards -->
+    <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="glass rounded-2xl p-4">
+        <p class="muted text-xs">آخر تقييم</p>
+        <p class="text-lg font-extrabold" id="lastCheckinLabel">—</p>
+        <p class="subtle text-sm" id="lastCheckinSummary">اعمل تقييم دوري علشان تشوف تقدمك.</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="muted text-xs">توازن اليوم (عادات)</p>
+        <p class="text-lg font-extrabold" id="todayHabitScore">—</p>
+        <p class="subtle text-sm" id="todayHabitHint">اختار تاريخ اليوم وعلّم اللي عملته.</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="muted text-xs">أقوى مجال هذا الأسبوع</p>
+        <p class="text-lg font-extrabold" id="bestArea">—</p>
+        <p class="subtle text-sm" id="bestAreaHint">بنعرفه من متوسط آخر 7 أيام/تقييمات.</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="muted text-xs">رسالة قصيرة</p>
+        <p class="text-sm subtle leading-6" id="dailyMessage">—</p>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <main class="mt-6">
+      <section id="tab-dashboard" class="tabPage">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 glass rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-extrabold">ملخص التقدم</h2>
+                <p class="muted text-sm">من آخر تقييماتك + آخر 7 أيام عادات.</p>
+              </div>
+              <button id="btnPrint" class="no-print px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition text-sm font-semibold">طباعة/حفظ PDF</button>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <div class="flex items-center justify-between">
+                  <p class="font-bold">الدين</p>
+                  <p class="muted text-sm" id="metricSpiritual">—</p>
+                </div>
+                <canvas id="chartSpiritual" class="w-full mt-3" height="110"></canvas>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <div class="flex items-center justify-between">
+                  <p class="font-bold">الرياضة</p>
+                  <p class="muted text-sm" id="metricSport">—</p>
+                </div>
+                <canvas id="chartSport" class="w-full mt-3" height="110"></canvas>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <div class="flex items-center justify-between">
+                  <p class="font-bold">الاجتماعي</p>
+                  <p class="muted text-sm" id="metricSocial">—</p>
+                </div>
+                <canvas id="chartSocial" class="w-full mt-3" height="110"></canvas>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <div class="flex items-center justify-between">
+                  <p class="font-bold">النفسي</p>
+                  <p class="muted text-sm" id="metricMental">—</p>
+                </div>
+                <canvas id="chartMental" class="w-full mt-3" height="110"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <aside class="glass rounded-2xl p-4 sm:p-5">
+            <h3 class="text-lg font-extrabold">خطة صغيرة لليوم</h3>
+            <p class="muted text-sm">اختار 3 خطوات بسيطة. المبدأ: "قليل دائم خير من كثير منقطع".</p>
+
+            <div class="mt-4 space-y-3">
+              <label class="block">
+                <span class="muted text-xs">1) علاقة بربنا</span>
+                <input id="plan1" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: صلاة في وقتها + أذكار 5 دقائق" />
+              </label>
+              <label class="block">
+                <span class="muted text-xs">2) رياضة/كرة</span>
+                <input id="plan2" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: تمرين 20 دقيقة أو مهارة كرة" />
+              </label>
+              <label class="block">
+                <span class="muted text-xs">3) نفس/علاقات</span>
+                <input id="plan3" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: مكالمة شخص مهم + نوم بدري" />
+              </label>
+              <div class="flex gap-2">
+                <button id="btnSavePlan" class="px-3 py-2 rounded-xl bg-violet-500/25 border border-violet-400/25 hover:bg-violet-500/35 transition text-sm font-bold w-full">حفظ الخطة</button>
+                <button id="btnClearPlan" class="px-3 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition text-sm font-bold">مسح</button>
+              </div>
+
+              <div class="rounded-2xl bg-white/5 ring-soft p-3">
+                <p class="muted text-xs">الخطة المحفوظة</p>
+                <ul class="mt-2 text-sm leading-7" id="savedPlanList"></ul>
+              </div>
+
+              <div class="rounded-2xl bg-white/5 ring-soft p-3">
+                <p class="muted text-xs">تنبيه مهم</p>
+                <p class="text-sm subtle leading-6">لو حاسس بضيق شديد أو أفكار إيذاء للنفس: كلم ولي أمرك فورًا أو شخص كبير تثق فيه أو جهة مساعدة محلية. الموقع ده مساعد للتنظيم مش بديل عن مختص.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- CHECKIN -->
+      <section id="tab-checkin" class="tabPage hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 glass rounded-2xl p-4 sm:p-5">
+            <h2 class="text-xl font-extrabold">تقييم دوري (Check-in)</h2>
+            <p class="muted text-sm">قيّم نفسك من 1 إلى 10. هدفنا فهم النفس مش جلد الذات.</p>
+
+            <form id="checkinForm" class="mt-4 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label class="block">
+                  <span class="muted text-xs">التاريخ</span>
+                  <input id="checkinDate" type="date" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" />
+                </label>
+                <label class="block">
+                  <span class="muted text-xs">الفترة</span>
+                  <select id="checkinPeriod" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10">
+                    <option value="daily">يومي</option>
+                    <option value="weekly" selected>أسبوعي</option>
+                    <option value="monthly">شهري</option>
+                  </select>
+                </label>
+                <label class="block">
+                  <span class="muted text-xs">المزاج العام</span>
+                  <select id="checkinMood" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10">
+                    <option value="excellent">ممتاز</option>
+                    <option value="good" selected>كويس</option>
+                    <option value="okay">مقبول</option>
+                    <option value="low">منخفض</option>
+                    <option value="stressed">متوتر</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="font-bold">الدين/علاقتي بربنا</p>
+                    <p class="muted text-sm"><span id="valSpiritual">7</span>/10</p>
+                  </div>
+                  <input id="spiritual" type="range" min="1" max="10" value="7" class="w-full mt-3" />
+                  <p class="muted text-xs mt-2">أسئلة تساعدك: صلاة؟ قرآن؟ توبة؟ نية؟</p>
+                </div>
+                <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="font-bold">الرياضة/اللياقة</p>
+                    <p class="muted text-sm"><span id="valSport">7</span>/10</p>
+                  </div>
+                  <input id="sport" type="range" min="1" max="10" value="7" class="w-full mt-3" />
+                  <p class="muted text-xs mt-2">تمرين؟ كرة؟ أكل؟ نوم؟</p>
+                </div>
+                <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="font-bold">الاجتماعي/العلاقات</p>
+                    <p class="muted text-sm"><span id="valSocial">7</span>/10</p>
+                  </div>
+                  <input id="social" type="range" min="1" max="10" value="7" class="w-full mt-3" />
+                  <p class="muted text-xs mt-2">أهل؟ أصدقاء؟ احترام حدود؟</p>
+                </div>
+                <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="font-bold">النفسي/العقلي</p>
+                    <p class="muted text-sm"><span id="valMental">7</span>/10</p>
+                  </div>
+                  <input id="mental" type="range" min="1" max="10" value="7" class="w-full mt-3" />
+                  <p class="muted text-xs mt-2">توتر؟ تركيز؟ تقدير ذات؟</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="block">
+                  <span class="muted text-xs">أهم شيء كان مُحسّن الأسبوع ده</span>
+                  <input id="wins" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: التزمت بتمرينين وقللت سوشيال" />
+                </label>
+                <label class="block">
+                  <span class="muted text-xs">أكبر تحدّي</span>
+                  <input id="challenges" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: سهر وتأجيل الصلاة" />
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="muted text-xs">ملاحظة/تفريغ</span>
+                <textarea id="notes" rows="4" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="اكتب اللي جواك..."></textarea>
+              </label>
+
+              <div class="flex flex-wrap gap-2">
+                <button class="px-4 py-2 rounded-xl bg-violet-500/25 border border-violet-400/25 hover:bg-violet-500/35 transition font-bold">حفظ التقييم</button>
+                <button type="button" id="btnSuggest" class="px-4 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition font-bold">اقترح خطوات عملية</button>
+              </div>
+
+              <div id="suggestionBox" class="hidden mt-2 rounded-2xl bg-white/5 ring-soft p-4">
+                <h3 class="font-extrabold">اقتراحات عملية حسب تقييمك</h3>
+                <ul class="mt-2 text-sm leading-7" id="suggestionList"></ul>
+              </div>
+            </form>
+          </div>
+
+          <aside class="glass rounded-2xl p-4 sm:p-5">
+            <h3 class="text-lg font-extrabold">قواعد التقييم الذكي</h3>
+            <ol class="mt-3 text-sm leading-7 subtle list-decimal pr-5 space-y-1">
+              <li>الرقم مش حكم عليك… هو إشارة.</li>
+              <li>لو رقم منخفض: اختار خطوة واحدة صغيرة قابلة للتنفيذ.</li>
+              <li>ثبت أساسياتك: النوم + الصلاة + حركة يومية.</li>
+              <li>التقدم الحقيقي = استمرارية.</li>
+            </ol>
+
+            <div class="mt-4 rounded-2xl bg-white/5 ring-soft p-4">
+              <p class="muted text-xs">دعاء مختصر</p>
+              <p class="text-sm subtle leading-7 mt-1">اللهم أعنّي على ذكرك وشكرك وحسن عبادتك، واهدني لأحسن الأخلاق.</p>
+            </div>
+
+            <div class="mt-4 rounded-2xl bg-white/5 ring-soft p-4">
+              <p class="muted text-xs">نصيحة كرة</p>
+              <p class="text-sm subtle leading-7 mt-1">اختار مهارة واحدة الأسبوع ده (تحكم/تمرير/تصويب) وكرّرها 15 دقيقة يوميًا. الاتقان بييجي من التكرار.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- HABITS -->
+      <section id="tab-habits" class="tabPage hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 glass rounded-2xl p-4 sm:p-5">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-extrabold">متابعة العادات</h2>
+                <p class="muted text-sm">علّم اللي عملته في يومك… وشوف نسبتك وستريكك.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="block">
+                  <span class="muted text-xs">التاريخ</span>
+                  <input id="habitDate" type="date" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" />
+                </label>
+              </div>
+            </div>
+
+            <div id="habitList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <p class="muted text-xs">نسبة إنجاز اليوم</p>
+                <p class="text-2xl font-extrabold" id="habitCompletion">—</p>
+                <p class="muted text-xs mt-1" id="habitCompletionHint">كل علامة بتعمل فرق.</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <p class="muted text-xs">ستريك أساسيات (صلاة + حركة)</p>
+                <p class="text-2xl font-extrabold" id="coreStreak">—</p>
+                <p class="muted text-xs mt-1">متتالية أيام التزام بالأساسيات.</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <p class="muted text-xs">آخر 7 أيام</p>
+                <div class="mt-2" id="last7" aria-label="ملخص آخر 7 أيام"></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="glass rounded-2xl p-4 sm:p-5">
+            <h3 class="text-lg font-extrabold">تصميم عاداتك</h3>
+            <p class="muted text-sm">تقدر تضيف عادة جديدة أو تعدّل الموجود.</p>
+
+            <form id="habitAddForm" class="mt-4 space-y-2">
+              <div class="grid grid-cols-1 gap-2">
+                <input id="habitNewName" class="w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="اسم العادة (مثال: أذكار الصباح)" />
+                <select id="habitNewCategory" class="w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10">
+                  <option value="spiritual">ديني</option>
+                  <option value="sport">رياضي</option>
+                  <option value="social">اجتماعي</option>
+                  <option value="mental">نفسي/عقلي</option>
+                </select>
+                <button class="px-3 py-2 rounded-xl bg-violet-500/25 border border-violet-400/25 hover:bg-violet-500/35 transition font-bold">إضافة</button>
+              </div>
+            </form>
+
+            <div class="mt-4 rounded-2xl bg-white/5 ring-soft p-4">
+              <p class="muted text-xs">مبدأ صغير</p>
+              <p class="text-sm subtle leading-7 mt-1">لو يومك اتلخبط… ارجع للأساسيات: صلاة في وقتها + 10 دقائق حركة + نوم بدري.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- EMOTIONS -->
+      <section id="tab-emotions" class="tabPage hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 glass rounded-2xl p-4 sm:p-5">
+            <h2 class="text-xl font-extrabold">جلسة فهم المشاعر (مساعد ذاتي)</h2>
+            <p class="muted text-sm">هنا بنمشي بخطوات: تسمية → سبب → فكرة → بديل → فعل صغير.</p>
+
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label class="block">
+                <span class="muted text-xs">المشاعر</span>
+                <select id="emoType" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10">
+                  <option value="anxiety">قلق</option>
+                  <option value="sadness">حزن</option>
+                  <option value="anger">غضب</option>
+                  <option value="guilt">ذنب</option>
+                  <option value="overwhelm" selected>تشتت/ضغط</option>
+                  <option value="lowself">إحباط/قلة ثقة</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="muted text-xs">الحدة</span>
+                <div class="mt-1 flex items-center gap-2">
+                  <input id="emoIntensity" type="range" min="1" max="10" value="6" class="w-full" />
+                  <span class="muted text-sm w-10 text-left"><span id="emoIntensityVal">6</span>/10</span>
+                </div>
+              </label>
+              <label class="block">
+                <span class="muted text-xs">متى حصل؟</span>
+                <input id="emoWhen" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: بعد المدرسة" />
+              </label>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="muted text-xs">الموقف/المثير</span>
+                <textarea id="emoTrigger" rows="3" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="ايه اللي حصل؟"></textarea>
+              </label>
+              <label class="block">
+                <span class="muted text-xs">الفكرة اللي جات في دماغي</span>
+                <textarea id="emoThought" rows="3" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: أنا مش كويس كفاية"></textarea>
+              </label>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="muted text-xs">الإحساس في الجسم</span>
+                <input id="emoBody" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: ضيق صدر / شد في الرقبة" />
+              </label>
+              <label class="block">
+                <span class="muted text-xs">إيه اللي محتاجه الآن؟ (راحة/أمان/تشجيع...)</span>
+                <input id="emoNeed" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: محتاج أهدى وأرتّب" />
+              </label>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button id="btnGenerate" class="px-4 py-2 rounded-xl bg-violet-500/25 border border-violet-400/25 hover:bg-violet-500/35 transition font-bold">اعمل خطة تهدئة</button>
+              <button id="btnBreath" class="px-4 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition font-bold">تنفّس 60 ثانية</button>
+              <button id="btnSaveSession" class="px-4 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition font-bold">حفظ في السجل</button>
+            </div>
+
+            <div id="emoOutput" class="hidden mt-4 rounded-2xl bg-white/5 ring-soft p-4">
+              <h3 class="font-extrabold">خطة مقترحة (مخصصة لك)</h3>
+              <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-black/20 ring-soft p-3">
+                  <p class="muted text-xs">إعادة صياغة الفكرة</p>
+                  <p class="text-sm subtle leading-7 mt-1" id="emoReframe">—</p>
+                </div>
+                <div class="rounded-2xl bg-black/20 ring-soft p-3">
+                  <p class="muted text-xs">فعل صغير خلال 10 دقائق</p>
+                  <p class="text-sm subtle leading-7 mt-1" id="emoAction">—</p>
+                </div>
+                <div class="rounded-2xl bg-black/20 ring-soft p-3">
+                  <p class="muted text-xs">سؤال يساعدك تفهم نفسك</p>
+                  <p class="text-sm subtle leading-7 mt-1" id="emoQuestion">—</p>
+                </div>
+                <div class="rounded-2xl bg-black/20 ring-soft p-3">
+                  <p class="muted text-xs">تذكير إيماني لطيف</p>
+                  <p class="text-sm subtle leading-7 mt-1" id="emoFaith">—</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl bg-white/5 ring-soft p-4">
+              <p class="muted text-xs">ملاحظة مهمة</p>
+              <p class="text-sm subtle leading-7 mt-1">الاقتراحات هنا تعليمية وتنظيمية، مش علاج نفسي. لو الموضوع كبير أو متكرر بشكل مؤلم: الأفضل تتكلم مع مختص/مرشد وثيق.</p>
+            </div>
+          </div>
+
+          <aside class="glass rounded-2xl p-4 sm:p-5">
+            <h3 class="text-lg font-extrabold">زر سريع</h3>
+            <p class="muted text-sm">وقت ما تحس بتوتر: ارجع للأساسيات في دقيقة.</p>
+
+            <div class="mt-4 space-y-2">
+              <button id="btnQuickReset" class="w-full px-4 py-3 rounded-2xl bg-emerald-500/20 border border-emerald-400/25 hover:bg-emerald-500/30 transition font-extrabold">تهدئة سريعة (60 ثانية)</button>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <p class="muted text-xs">الخطوات</p>
+                <ol class="mt-2 text-sm leading-7 subtle list-decimal pr-5 space-y-1" id="quickSteps">
+                  <li>خد نفس شهيق 4 ثواني</li>
+                  <li>احبسه 2 ثانية</li>
+                  <li>زفير 6 ثواني</li>
+                  <li>كرر 6 مرات</li>
+                </ol>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <p class="muted text-xs">جملة تبني ثقة</p>
+                <p class="text-sm subtle leading-7 mt-1" id="affirmation">أنا أقدر أتحسن خطوة خطوة… وربنا شايف مجهودي.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section id="tab-history" class="tabPage hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 glass rounded-2xl p-4 sm:p-5">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-extrabold">سجلّي</h2>
+                <p class="muted text-sm">هنا هتشوف تقييماتك وجلسات المشاعر. تقدر تمسح عنصر واحد.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input id="search" class="w-full md:w-80 rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="بحث… (مثال: صلاة / كرة / قلق)" />
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 gap-3">
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <h3 class="font-extrabold">التقييمات</h3>
+                <div id="checkinTable" class="mt-3 overflow-auto"></div>
+              </div>
+              <div class="rounded-2xl bg-white/5 ring-soft p-4">
+                <h3 class="font-extrabold">جلسات المشاعر</h3>
+                <div id="sessionList" class="mt-3 space-y-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="glass rounded-2xl p-4 sm:p-5">
+            <h3 class="text-lg font-extrabold">مراجعة شهرية (اقتراح)</h3>
+            <p class="muted text-sm">مرة كل شهر: اختر 3 أشياء تكملها وشيء واحد تسيبه.</p>
+
+            <div class="mt-4 rounded-2xl bg-white/5 ring-soft p-4">
+              <p class="muted text-xs">أسئلة</p>
+              <ul class="mt-2 text-sm leading-7 subtle list-disc pr-5 space-y-1">
+                <li>إيه اللي قرّبني لربنا الشهر ده؟</li>
+                <li>إيه اللي حسّن كرتي/لياقتي؟</li>
+                <li>مين علاقتي بيه محتاجة إصلاح؟</li>
+                <li>إيه العادة الصغيرة اللي لو ثبتّت هتغيّر كل شيء؟</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-8 pb-4">
+      <div class="glass rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <p class="muted text-sm">© <span id="year"></span> — لوحة Ali Tarek • تعمل بالكامل بدون إنترنت بعد التحميل.</p>
+        <p class="muted text-xs">نصيحة: استخدم "تقييم أسبوعي" كل جمعة، و"عادات" يوميًا.</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Profile modal -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/70"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="w-full max-w-xl glass rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-extrabold">تعديل بياناتك</h3>
+            <p class="muted text-sm">ده يغيّر النصوص داخل الموقع فقط.</p>
+          </div>
+          <button id="btnCloseProfile" class="px-3 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition text-sm font-bold">إغلاق</button>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block">
+            <span class="muted text-xs">الاسم</span>
+            <input id="inpName" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" />
+          </label>
+          <label class="block">
+            <span class="muted text-xs">العمر</span>
+            <input id="inpAge" type="number" min="10" max="99" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" />
+          </label>
+          <label class="block md:col-span-2">
+            <span class="muted text-xs">نبذة قصيرة</span>
+            <input id="inpBio" class="mt-1 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="مثال: بحب الكورة وبسعى لأفضل نسخة مني" />
+          </label>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <button id="btnSaveProfile" class="px-4 py-2 rounded-xl bg-violet-500/25 border border-violet-400/25 hover:bg-violet-500/35 transition font-bold w-full">حفظ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restore modal -->
+  <div id="restoreModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/70"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="w-full max-w-xl glass rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-extrabold">استيراد بيانات</h3>
+            <p class="muted text-sm">الصق JSON اللي طلعته من النسخ الاحتياطي.</p>
+          </div>
+          <button id="btnCloseRestore" class="px-3 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition text-sm font-bold">إغلاق</button>
+        </div>
+        <textarea id="restoreText" rows="8" class="mt-4 w-full rounded-xl bg-white/5 ring-soft px-3 py-2 outline-none focus:bg-white/10" placeholder="{" ></textarea>
+        <div class="mt-3 flex gap-2">
+          <button id="btnDoRestore" class="px-4 py-2 rounded-xl bg-violet-500/25 border border-violet-400/25 hover:bg-violet-500/35 transition font-bold w-full">استيراد</button>
+        </div>
+        <p class="muted text-xs mt-3">تحذير: الاستيراد هيستبدل بياناتك الحالية.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-4 left-4 right-4 sm:right-auto sm:w-96 z-50 toast">
+    <div class="glass rounded-2xl p-4 flex items-start gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-white/10 ring-soft flex items-center justify-center">✦</div>
+      <div class="flex-1">
+        <p class="font-extrabold" id="toastTitle">تم</p>
+        <p class="muted text-sm" id="toastMsg">—</p>
+      </div>
+      <button id="toastClose" class="px-3 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition text-sm font-bold">إغلاق</button>
+    </div>
+  </div>
+
+  <script>
+    // ============================
+    // Data + Storage
+    // ============================
+    const STORAGE_KEY = 'ali_tarek_personal_site_v1';
+
+    const defaultState = {
+      profile: {
+        name: 'Ali tarek',
+        age: 16,
+        bio: 'محب للكورة وبسعى لأفضل نسخة مني.'
+      },
+      plan: {
+        date: '',
+        items: []
+      },
+      checkins: [],
+      sessions: [],
+      habitsCatalog: [
+        { id: 'pray_fajr', name: 'صلاة الفجر', category: 'spiritual', core: true },
+        { id: 'pray_dhuhr', name: 'صلاة الظهر', category: 'spiritual', core: false },
+        { id: 'pray_asr', name: 'صلاة العصر', category: 'spiritual', core: false },
+        { id: 'pray_maghrib', name: 'صلاة المغرب', category: 'spiritual', core: false },
+        { id: 'pray_isha', name: 'صلاة العشاء', category: 'spiritual', core: true },
+        { id: 'quran', name: 'قرآن/ورد', category: 'spiritual', core: false },
+        { id: 'workout', name: 'حركة/تمرين 20 دقيقة', category: 'sport', core: true },
+        { id: 'football', name: 'تدريب كرة/مهارة', category: 'sport', core: false },
+        { id: 'sleep', name: 'نوم بدري', category: 'mental', core: true },
+        { id: 'family', name: 'بر/تواصل مع الأهل', category: 'social', core: false },
+        { id: 'friend', name: 'كلمة طيبة/تواصل صحي', category: 'social', core: false },
+        { id: 'journal', name: 'تفريغ/كتابة 5 دقائق', category: 'mental', core: false },
+      ],
+      habitsByDate: {}
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const parsed = JSON.parse(raw);
+        // Merge lightly to keep new defaults
+        return {
+          ...structuredClone(defaultState),
+          ...parsed,
+          profile: { ...structuredClone(defaultState.profile), ...(parsed.profile || {}) },
+          plan: { ...structuredClone(defaultState.plan), ...(parsed.plan || {}) },
+          habitsCatalog: Array.isArray(parsed.habitsCatalog) && parsed.habitsCatalog.length ? parsed.habitsCatalog : structuredClone(defaultState.habitsCatalog),
+          checkins: Array.isArray(parsed.checkins) ? parsed.checkins : [],
+          sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+          habitsByDate: parsed.habitsByDate && typeof parsed.habitsByDate === 'object' ? parsed.habitsByDate : {}
+        };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    // ============================
+    // Helpers
+    // ============================
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function pad2(n){ return String(n).padStart(2,'0'); }
+
+    function isoDate(d=new Date()){
+      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    }
+
+    function humanDate(iso){
+      if(!iso) return '—';
+      const [y,m,d] = iso.split('-').map(Number);
+      const dt = new Date(y, (m||1)-1, d||1);
+      return dt.toLocaleDateString('ar-EG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    }
+
+    function moodLabel(v){
+      return ({ excellent:'ممتاز', good:'كويس', okay:'مقبول', low:'منخفض', stressed:'متوتر' }[v] || v);
+    }
+
+    function catLabel(v){
+      return ({ spiritual:'ديني', sport:'رياضي', social:'اجتماعي', mental:'نفسي/عقلي' }[v] || v);
+    }
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function avg(arr){
+      if(!arr.length) return null;
+      return arr.reduce((s,x)=>s+x,0)/arr.length;
+    }
+
+    function toast(title, msg){
+      $('#toastTitle').textContent = title;
+      $('#toastMsg').textContent = msg;
+      $('#toast').classList.remove('hidden');
+      window.clearTimeout(window.__toastT);
+      window.__toastT = window.setTimeout(()=>$('#toast').classList.add('hidden'), 3800);
+    }
+
+    // ============================
+    // Tabs
+    // ============================
+    function setTab(tab){
+      $$('.tab').forEach(b=>b.classList.toggle('bg-white/12', b.dataset.tab===tab));
+      $$('.tabPage').forEach(p=>p.classList.add('hidden'));
+      const page = document.getElementById(`tab-${tab}`);
+      if(page) page.classList.remove('hidden');
+      location.hash = tab;
+      // refresh on tab change
+      renderAll();
+    }
+
+    function initTabs(){
+      $$('.tab').forEach(btn=>btn.addEventListener('click', ()=>setTab(btn.dataset.tab)));
+      const initial = (location.hash || '#dashboard').replace('#','');
+      setTab(['dashboard','checkin','habits','emotions','history'].includes(initial) ? initial : 'dashboard');
+    }
+
+    // ============================
+    // Charts (simple canvas line)
+    // ============================
+    function drawLineChart(canvas, values, color){
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth * devicePixelRatio;
+      const h = canvas.height = canvas.clientHeight * devicePixelRatio;
+      ctx.clearRect(0,0,w,h);
+
+      // background grid
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.lineWidth = 1 * devicePixelRatio;
+      const lines = 4;
+      for(let i=1;i<=lines;i++){
+        const y = (h/(lines+1))*i;
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(w,y);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      if(!values || values.length < 2){
+        ctx.fillStyle = 'rgba(255,255,255,0.60)';
+        ctx.font = `${12*devicePixelRatio}px Cairo`;
+        ctx.fillText('أضف تقييمات أكتر لرسم المنحنى', 10*devicePixelRatio, 20*devicePixelRatio);
+        return;
+      }
+
+      const maxY = 10;
+      const minY = 1;
+      const pad = 10*devicePixelRatio;
+      const innerW = w - pad*2;
+      const innerH = h - pad*2;
+
+      function xAt(i){
+        return pad + (innerW * (i/(values.length-1)));
+      }
+      function yAt(v){
+        const t = (v - minY) / (maxY - minY);
+        return pad + (innerH * (1 - t));
+      }
+
+      // line
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * devicePixelRatio;
+      ctx.beginPath();
+      values.forEach((v,i)=>{
+        const x = xAt(i);
+        const y = yAt(v);
+        if(i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // points
+      ctx.fillStyle = color;
+      values.forEach((v,i)=>{
+        const x = xAt(i);
+        const y = yAt(v);
+        ctx.beginPath();
+        ctx.arc(x,y,3.2*devicePixelRatio,0,Math.PI*2);
+        ctx.fill();
+      });
+
+      // last value label
+      const last = values[values.length-1];
+      ctx.fillStyle = 'rgba(255,255,255,0.90)';
+      ctx.font = `${12*devicePixelRatio}px Cairo`;
+      ctx.fillText(String(last), w - (22*devicePixelRatio), 16*devicePixelRatio);
+    }
+
+    // ============================
+    // Dashboard render
+    // ============================
+    function lastNCheckins(n=10){
+      return [...state.checkins].sort((a,b)=> (a.date < b.date ? -1 : 1)).slice(-n);
+    }
+
+    function computeBestArea(){
+      const last = lastNCheckins(7);
+      if(!last.length) return null;
+      const areas = [
+        {key:'spiritual', name:'الدين'},
+        {key:'sport', name:'الرياضة'},
+        {key:'social', name:'الاجتماعي'},
+        {key:'mental', name:'النفسي'}
+      ];
+      const scored = areas.map(a=>({
+        ...a,
+        v: avg(last.map(x=>x[a.key]).filter(Boolean))
+      })).filter(x=>x.v!=null);
+      if(!scored.length) return null;
+      scored.sort((a,b)=>b.v-a.v);
+      return scored[0];
+    }
+
+    function pickDailyMessage(){
+      const msgs = [
+        'اربط يومك بنية واضحة: "يا رب اجعلني أفضل"… وبعدها خطوة واحدة عملية.',
+        'الاستمرارية أهم من الحماس: 10 دقائق قرآن + 20 دقيقة حركة = فرق كبير مع الوقت.',
+        'صلّح علاقتك بربنا… هتلاقي نفسك بتستقيم في باقي المجالات تلقائيًا.',
+        'في الكورة: ركّز على أساس واحد النهاردة (لمسة أولى/تمرير) وكرّر كتير.',
+        'مشاعرك مش عدوك… هي رسالة. اسمعها ووجّهها، مش تسيبها تقودك.',
+        'لو وقعت… ارجع بسرعة. أهم مهارة: الرجوع بعد الغلط.'
+      ];
+      const seed = new Date().getFullYear()*10000 + (new Date().getMonth()+1)*100 + new Date().getDate();
+      const idx = seed % msgs.length;
+      return msgs[idx];
+    }
+
+    function renderHeader(){
+      $('#year').textContent = String(new Date().getFullYear());
+      $('#todayStr').textContent = humanDate(isoDate());
+      $('#profileName').textContent = state.profile.name || '—';
+      document.title = `${state.profile.name || 'لوحة'} — لوحة تطوير الذات`;
+    }
+
+    function renderQuickCards(){
+      // Last checkin
+      const last = [...state.checkins].sort((a,b)=> (a.date < b.date ? -1 : 1)).slice(-1)[0];
+      if(!last){
+        $('#lastCheckinLabel').textContent = 'لا يوجد';
+        $('#lastCheckinSummary').textContent = 'ابدأ بتقييم أسبوعي بسيط.';
+      } else {
+        $('#lastCheckinLabel').textContent = humanDate(last.date);
+        const avgScore = Math.round(((last.spiritual + last.sport + last.social + last.mental)/4)*10)/10;
+        $('#lastCheckinSummary').textContent = `المزاج: ${moodLabel(last.mood)} • متوسط: ${avgScore}/10`;
+      }
+
+      // Today habit score
+      const d = $('#habitDate')?.value || isoDate();
+      const {completion} = computeHabitCompletion(d);
+      $('#todayHabitScore').textContent = completion == null ? '—' : `${completion}%`;
+      $('#todayHabitHint').textContent = completion == null ? 'علّم عادات اليوم عشان نحسبها.' : 'استمر… كل يوم بيبنيك.';
+
+      // Best area
+      const best = computeBestArea();
+      $('#bestArea').textContent = best ? best.name : '—';
+      $('#bestAreaHint').textContent = best ? `متوسط ${best.v.toFixed(1)}/10 في آخر التقييمات.` : 'محتاج تقييمات علشان نحدد.';
+
+      $('#dailyMessage').textContent = pickDailyMessage();
+    }
+
+    function renderCharts(){
+      const arr = lastNCheckins(10);
+      const spiritual = arr.map(x=>x.spiritual);
+      const sport = arr.map(x=>x.sport);
+      const social = arr.map(x=>x.social);
+      const mental = arr.map(x=>x.mental);
+
+      const last = arr[arr.length-1];
+      $('#metricSpiritual').textContent = last ? `آخر: ${last.spiritual}/10` : '—';
+      $('#metricSport').textContent = last ? `آخر: ${last.sport}/10` : '—';
+      $('#metricSocial').textContent = last ? `آخر: ${last.social}/10` : '—';
+      $('#metricMental').textContent = last ? `آخر: ${last.mental}/10` : '—';
+
+      drawLineChart($('#chartSpiritual'), spiritual, 'rgba(167,139,250,0.95)');
+      drawLineChart($('#chartSport'), sport, 'rgba(34,197,94,0.95)');
+      drawLineChart($('#chartSocial'), social, 'rgba(56,189,248,0.95)');
+      drawLineChart($('#chartMental'), mental, 'rgba(251,113,133,0.95)');
+    }
+
+    function renderPlan(){
+      const list = $('#savedPlanList');
+      if(!list) return;
+      const p = state.plan;
+      list.innerHTML = '';
+      if(!p?.items?.length){
+        list.innerHTML = `<li class="muted">لا توجد خطة محفوظة.</li>`;
+        return;
+      }
+      const dateLabel = p.date ? humanDate(p.date) : '—';
+      const header = document.createElement('li');
+      header.className = 'muted';
+      header.textContent = `تاريخ: ${dateLabel}`;
+      list.appendChild(header);
+      p.items.forEach((it)=>{
+        const li = document.createElement('li');
+        li.textContent = `• ${it}`;
+        list.appendChild(li);
+      });
+    }
+
+    // ============================
+    // Checkin
+    // ============================
+    function syncRangeLabels(){
+      $('#valSpiritual').textContent = $('#spiritual').value;
+      $('#valSport').textContent = $('#sport').value;
+      $('#valSocial').textContent = $('#social').value;
+      $('#valMental').textContent = $('#mental').value;
+    }
+
+    function suggestStepsFromScores({spiritual, sport, social, mental, mood}){
+      const items = [];
+
+      // Spiritual
+      if(spiritual <= 5){
+        items.push('الدين: اختر "أساس واحد" لمدة 7 أيام: صلاة في وقتها + دعاء قصير بعد كل صلاة.');
+        items.push('الدين: ورد قرآن صغير جدًا (5 دقائق) أهم من ورد كبير ينقطع.');
+      } else if (spiritual <= 7) {
+        items.push('الدين: حسّن جودة عبادة واحدة: ركعتين سنّة/أذكار/استغفار 2 دقيقة.');
+      } else {
+        items.push('الدين: ثبت اللي شغال… وخد خطوة لطيفة: صدقة بسيطة أو مساعدة حد في البيت.');
+      }
+
+      // Sport
+      if(sport <= 5){
+        items.push('الرياضة: 20 دقيقة حركة يوميًا (حتى مشي سريع) + شرب مياه كفاية.');
+        items.push('الرياضة/كرة: تمرين مهارة واحدة 15 دقيقة (لمسة أولى/تمرير على الحائط).');
+      } else if (sport <= 7) {
+        items.push('الرياضة: خلي عندك 2 حصص ثابتة في الأسبوع + يوم كرة.');
+      } else {
+        items.push('الرياضة: ركّز على الاستشفاء: نوم كويس + إطالة 5 دقائق بعد التمرين.');
+      }
+
+      // Social
+      if(social <= 5){
+        items.push('الاجتماعي: خطوة واحدة: رسالة تقدير لشخص قريب أو اعتذار بسيط لو محتاج.');
+        items.push('الاجتماعي: راقب حدودك: قلّل الاحتكاك اللي بيستنزفك.');
+      } else if (social <= 7) {
+        items.push('الاجتماعي: اقترح نشاط خفيف مع صديق/قريب (مشي/كورة).');
+      } else {
+        items.push('الاجتماعي: استمر… وادعم غيرك بكلمة طيبة كل يوم.');
+      }
+
+      // Mental
+      if(mental <= 5){
+        items.push('النفسي: نوم بدري 3 أيام متتالية (جرّب 30 دقيقة أقل سوشيال قبل النوم).');
+        items.push('النفسي: اكتب 5 دقائق: "أنا حاسس بـ… بسبب… واحتاج…".');
+        items.push('النفسي: لو الضغط عالي ومكرر—اتكلم مع شخص كبير تثق فيه.');
+      } else if (mental <= 7) {
+        items.push('النفسي: خطة يومية من 3 مهام فقط + استراحة.');
+      } else {
+        items.push('النفسي: حافظ على توازنك: رياضة + تواصل + عبادة.');
+      }
+
+      // Mood
+      if(mood === 'stressed'){
+        items.unshift('المزاج متوتر: جرّب تنفّس 60 ثانية الآن + امشِ 5 دقائق.');
+      }
+      if(mood === 'low'){
+        items.unshift('المزاج منخفض: اختار "فعل صغير" سريع يحسّنك (مياه + ضوء شمس + رسالة لصديق).');
+      }
+
+      return items.slice(0,8);
+    }
+
+    // ============================
+    // Habits
+    // ============================
+    function ensureDateBucket(date){
+      if(!state.habitsByDate[date]) state.habitsByDate[date] = {};
+      return state.habitsByDate[date];
+    }
+
+    function computeHabitCompletion(date){
+      const bucket = state.habitsByDate[date];
+      if(!bucket) return {completion: null, done: 0, total: state.habitsCatalog.length};
+      const total = state.habitsCatalog.length;
+      const done = state.habitsCatalog.reduce((c,h)=> c + (bucket[h.id] ? 1 : 0), 0);
+      const completion = total ? Math.round((done/total)*100) : 0;
+      return {completion, done, total};
+    }
+
+    function computeCoreStreak(){
+      // core habits: those marked core
+      const coreIds = state.habitsCatalog.filter(h=>h.core).map(h=>h.id);
+      if(!coreIds.length) return 0;
+
+      let streak = 0;
+      // go backwards from today
+      for(let i=0;i<365;i++){
+        const d = new Date();
+        d.setDate(d.getDate()-i);
+        const key = isoDate(d);
+        const bucket = state.habitsByDate[key];
+        if(!bucket) break;
+        const ok = coreIds.every(id => bucket[id] === true);
+        if(ok) streak++;
+        else break;
+      }
+      return streak;
+    }
+
+    function renderHabits(){
+      const date = $('#habitDate').value || isoDate();
+      $('#habitDate').value = date;
+      const bucket = ensureDateBucket(date);
+
+      const list = $('#habitList');
+      if(!list) return;
+      list.innerHTML = '';
+
+      const catColors = {
+        spiritual: 'border-violet-400/20 bg-violet-500/10',
+        sport: 'border-emerald-400/20 bg-emerald-500/10',
+        social: 'border-sky-400/20 bg-sky-500/10',
+        mental: 'border-rose-400/20 bg-rose-500/10'
+      };
+
+      state.habitsCatalog.forEach(h=>{
+        const card = document.createElement('div');
+        card.className = `rounded-2xl ring-soft border ${catColors[h.category] || 'border-white/10 bg-white/5'} p-4 flex items-start justify-between gap-3`;
+
+        const left = document.createElement('div');
+        const title = document.createElement('p');
+        title.className = 'font-extrabold';
+        title.textContent = h.name;
+        const meta = document.createElement('p');
+        meta.className = 'muted text-xs mt-1';
+        meta.textContent = `${catLabel(h.category)}${h.core ? ' • أساسي' : ''}`;
+        left.appendChild(title);
+        left.appendChild(meta);
+
+        const right = document.createElement('div');
+        right.className = 'flex items-center gap-2';
+
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.checked = !!bucket[h.id];
+        chk.className = 'w-5 h-5';
+        chk.addEventListener('change', ()=>{
+          bucket[h.id] = chk.checked;
+          state.habitsByDate[date] = bucket;
+          saveState();
+          renderHabitsStats();
+          renderQuickCards();
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'px-3 py-1.5 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition text-xs font-bold';
+        delBtn.textContent = 'حذف';
+        delBtn.title = 'حذف هذه العادة من القائمة';
+        delBtn.addEventListener('click', ()=>{
+          if(!confirm('متأكد تحذف العادة؟')) return;
+          state.habitsCatalog = state.habitsCatalog.filter(x=>x.id!==h.id);
+          // remove from all dates
+          Object.keys(state.habitsByDate).forEach(dt=>{ if(state.habitsByDate[dt]) delete state.habitsByDate[dt][h.id]; });
+          saveState();
+          toast('تم', 'اتحذفت العادة.');
+          renderHabits();
+          renderHabitsStats();
+          renderQuickCards();
+        });
+
+        right.appendChild(chk);
+        right.appendChild(delBtn);
+
+        card.appendChild(left);
+        card.appendChild(right);
+        list.appendChild(card);
+      });
+
+      renderHabitsStats();
+    }
+
+    function renderHabitsStats(){
+      const date = $('#habitDate').value || isoDate();
+      const {completion, done, total} = computeHabitCompletion(date);
+      $('#habitCompletion').textContent = completion == null ? '—' : `${completion}%`;
+      $('#habitCompletionHint').textContent = completion == null ? 'ابدأ بتعليم عادات اليوم.' : `أنجزت ${done} من ${total}.`;
+
+      const streak = computeCoreStreak();
+      $('#coreStreak').textContent = `${streak} يوم`;
+
+      // last 7 days
+      const wrap = $('#last7');
+      if(wrap){
+        wrap.innerHTML = '';
+        const base = new Date();
+        const rows = [];
+        for(let i=6;i>=0;i--){
+          const d = new Date(base);
+          d.setDate(d.getDate()-i);
+          const key = isoDate(d);
+          const stat = computeHabitCompletion(key);
+          const pct = stat.completion ?? 0;
+          rows.push({key, pct});
+        }
+        const bar = document.createElement('div');
+        bar.className = 'flex items-end gap-1 h-16';
+        rows.forEach(r=>{
+          const col = document.createElement('div');
+          col.className = 'flex-1 rounded-lg bg-white/10 ring-soft relative overflow-hidden';
+          const fill = document.createElement('div');
+          fill.className = 'absolute bottom-0 left-0 right-0 bg-violet-400/60';
+          fill.style.height = `${clamp(r.pct,0,100)}%`;
+          const tip = document.createElement('div');
+          tip.className = 'absolute inset-0 flex items-center justify-center text-[10px] muted';
+          tip.textContent = (r.pct ? `${r.pct}%` : '');
+          col.title = `${humanDate(r.key)} — ${r.pct}%`;
+          col.appendChild(fill);
+          col.appendChild(tip);
+          bar.appendChild(col);
+        });
+        const label = document.createElement('p');
+        label.className = 'muted text-xs mt-2';
+        label.textContent = 'الأعمدة تمثل نسبة إنجاز العادات لكل يوم.';
+        wrap.appendChild(bar);
+        wrap.appendChild(label);
+      }
+
+      saveState();
+    }
+
+    // ============================
+    // Emotions session
+    // ============================
+    function emotionLabel(type){
+      return ({
+        anxiety:'قلق', sadness:'حزن', anger:'غضب', guilt:'ذنب', overwhelm:'تشتت/ضغط', lowself:'إحباط/قلة ثقة'
+      }[type] || type);
+    }
+
+    function generateEmotionPlan(input){
+      const {type, intensity, trigger, thought, need} = input;
+
+      const baseReframes = {
+        anxiety: [
+          'القلق بيحاول يحميني… بس مش لازم يقرر بدلّي. أقدر آخد خطوة صغيرة الآن.',
+          'مش لازم أكون متأكد 100%… كفاية أعمل اللي عليّ النهاردة.'
+        ],
+        sadness: [
+          'الحزن مش ضعف… هو إشارة إني محتاج رحمة وراحة. أقدر أطلب دعم.',
+          'اللي حصل صعب… لكن ده لا يحدد قيمتي.'
+        ],
+        anger: [
+          'الغضب طاقة… أقدر أوجّهها لحل، مش لجرح.',
+          'قبل ما أرد… أهدى 60 ثانية وبعدين أتكلم بهدوء.'
+        ],
+        guilt: [
+          'الذنب ممكن يكون بداية توبة وإصلاح… مش نهاية الطريق.',
+          'أنا أقدر أصلح خطئي بخطوات: اعتذار/تعويض/منع تكرار.'
+        ],
+        overwhelm: [
+          'التشتت معناه إن الحمل كبير… الحل: تقسيم + أول خطوة بس.',
+          'مش لازم أعمل كل شيء الآن… أختار أهم 1-2 شيء.'
+        ],
+        lowself: [
+          'قيمتي مش مرتبطة بنتيجة واحدة… أنا بتعلم وبكبر.',
+          'أنا مش متأخر… أنا في رحلة، وكل يوم تدريب.'
+        ]
+      };
+
+      const baseActions = {
+        anxiety: [
+          'اكتب: أسوأ سيناريو/أفضل سيناريو/السيناريو الأقرب… وبعدين خطوة واحدة في اتجاه الأقرب.',
+          'مشي 10 دقائق أو تمرين خفيف + شرب مياه.'
+        ],
+        sadness: [
+          'اتواصل مع شخص قريب/ولي أمرك بكلمة بسيطة: "محتاج أتكلم".',
+          'اعمِل شيء لطيف لنفسك: دش/ترتيب سرير/شمس 5 دقائق.'
+        ],
+        anger: [
+          'ابعد عن الموقف دقيقة، تنفّس، وبعدها اكتب ردّك قبل ما تقوله.',
+          'تفريغ صحي: ضغط كرة/تمرين سريع 5 دقائق.'
+        ],
+        guilt: [
+          'حدد: ماذا سأصلح اليوم؟ (رسالة اعتذار/إرجاع حق/التزام صلاة) وخطوة واحدة الآن.',
+          'اكتب تعهّد صغير: "لو حصل كذا… هعمل كذا".'
+        ],
+        overwhelm: [
+          'قائمة 3 مهام فقط لليوم. أي شيء غيرهم يتأجل.',
+          'أقفل مشتتات 25 دقيقة (Pomodoro) وابدأ بأصغر جزء.'
+        ],
+        lowself: [
+          'اختار مهارة واحدة في الكورة ودرّب 15 دقيقة—التقدم المقاس يرفع الثقة.',
+          'اكتب 3 أشياء أنت كويس فيها (حتى لو بسيطة).' 
+        ]
+      };
+
+      const baseQuestions = {
+        anxiety: 'إيه الدليل الحقيقي على الفكرة… وإيه الدليل ضدها؟',
+        sadness: 'إيه اللي كنت هقوله لصديق لو كان مكانك؟',
+        anger: 'إيه الاحتياج اللي الغضب بيحاول يدافع عنه؟ (احترام/أمان/عدل)',
+        guilt: 'إيه الإصلاح الواقعي اللي يخليني أتقدم بدل ما أوقف؟',
+        overwhelm: 'لو عندي 10% بس طاقة… إيه أهم خطوة؟',
+        lowself: 'إيه معيار النجاح "الواقعي" بالنسبة لعمري وظروفي؟'
+      };
+
+      const faithReminders = {
+        anxiety: 'اتجه لربنا بخطوة: دعاء صادق + ركعتين لو تقدر. "يا رب طمّن قلبي".',
+        sadness: 'خلي عندك باب رجوع: استغفار + دعاء. الرحمة أكبر من إحساسك الآن.',
+        anger: 'الهدوء عبادة… امسك نفسك دقيقة قبل الكلام، وربنا يثبتك على الحلم.',
+        guilt: 'التوبة معناها رجوع عملي: ندم + توقف + قرار + إصلاح.',
+        overwhelm: 'ربنا لا يكلف نفسًا إلا وسعها… خليك في وسع النهاردة بس.',
+        lowself: 'ربنا ينظر للصدق والمجاهدة… مش للكمال. خليك ثابت واشتغل.'
+      };
+
+      const reframes = baseReframes[type] || ['أقدر أهدى وأفهم نفسي خطوة خطوة.'];
+      const actions = baseActions[type] || ['خذ نفسًا عميقًا وابدأ بأصغر خطوة.'];
+
+      // Personalize lightly using input text
+      const t = (thought || '').trim();
+      const trig = (trigger || '').trim();
+      const n = (need || '').trim();
+
+      const reframe = t
+        ? `الفكرة كانت: "${t}". بديل واقعي: ${reframes[intensity > 7 ? 0 : 1] || reframes[0]}`
+        : reframes[intensity > 7 ? 0 : 1] || reframes[0];
+
+      const action = trig
+        ? `بسبب "${trig}": ${actions[intensity > 7 ? 0 : 1] || actions[0]}`
+        : (actions[intensity > 7 ? 0 : 1] || actions[0]);
+
+      const question = n
+        ? `بما إنك محتاج "${n}": ${baseQuestions[type] || 'إيه أصغر خطوة تساعدك؟'}`
+        : (baseQuestions[type] || 'إيه أصغر خطوة تساعدك؟');
+
+      const faith = faithReminders[type] || 'ادعُ ربنا بصدق وخد خطوة صغيرة.';
+
+      return { reframe, action, question, faith };
+    }
+
+    function breath60(){
+      const btn = $('#btnBreath');
+      const btn2 = $('#btnQuickReset');
+      const original1 = btn?.textContent;
+      const original2 = btn2?.textContent;
+
+      let t = 60;
+      function tick(){
+        const label = `تنفّس… ${t}s`;
+        if(btn) btn.textContent = label;
+        if(btn2) btn2.textContent = label;
+        t--;
+        if(t < 0){
+          if(btn) btn.textContent = original1 || 'تنفّس 60 ثانية';
+          if(btn2) btn2.textContent = original2 || 'تهدئة سريعة (60 ثانية)';
+          toast('أحسنت', 'دلوقتي اسأل نفسك: ما هي الخطوة الصغيرة التالية؟');
+          return;
+        }
+        window.__breathTimer = window.setTimeout(tick, 1000);
+      }
+      window.clearTimeout(window.__breathTimer);
+      tick();
+    }
+
+    // ============================
+    // History
+    // ============================
+    function renderHistory(){
+      const q = ($('#search')?.value || '').trim().toLowerCase();
+
+      // Checkins table
+      const wrap = $('#checkinTable');
+      if(wrap){
+        const rows = [...state.checkins]
+          .sort((a,b)=> (a.date < b.date ? 1 : -1))
+          .filter(x=>{
+            if(!q) return true;
+            return [x.date, x.period, x.mood, x.wins, x.challenges, x.notes]
+              .filter(Boolean).join(' ').toLowerCase().includes(q);
+          });
+
+        if(!rows.length){
+          wrap.innerHTML = `<p class="muted text-sm">لا يوجد تقييمات مطابقة.</p>`;
+        } else {
+          const table = document.createElement('table');
+          table.className = 'w-full text-sm';
+          table.innerHTML = `
+            <thead class="text-right">
+              <tr class="muted text-xs">
+                <th class="py-2">التاريخ</th>
+                <th>الفترة</th>
+                <th>المزاج</th>
+                <th>دين</th>
+                <th>رياضة</th>
+                <th>اجتماعي</th>
+                <th>نفسي</th>
+                <th class="no-print">إجراء</th>
+              </tr>
+            </thead>
+          `;
+          const tb = document.createElement('tbody');
+          rows.forEach((r)=>{
+            const tr = document.createElement('tr');
+            tr.className = 'border-t border-white/10';
+            tr.innerHTML = `
+              <td class="py-2 font-semibold">${humanDate(r.date)}</td>
+              <td class="muted">${({daily:'يومي', weekly:'أسبوعي', monthly:'شهري'}[r.period]||r.period)}</td>
+              <td class="muted">${moodLabel(r.mood)}</td>
+              <td>${r.spiritual}</td>
+              <td>${r.sport}</td>
+              <td>${r.social}</td>
+              <td>${r.mental}</td>
+              <td class="no-print"></td>
+            `;
+            const btn = document.createElement('button');
+            btn.className = 'px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-400/20 hover:bg-rose-500/25 transition text-xs font-bold';
+            btn.textContent = 'حذف';
+            btn.addEventListener('click', ()=>{
+              if(!confirm('حذف هذا التقييم؟')) return;
+              state.checkins = state.checkins.filter(x=>x.id!==r.id);
+              saveState();
+              toast('تم', 'اتحذف التقييم.');
+              renderAll();
+            });
+            tr.children[7].appendChild(btn);
+            tb.appendChild(tr);
+          });
+          table.appendChild(tb);
+          wrap.innerHTML = '';
+          wrap.appendChild(table);
+        }
+      }
+
+      // Sessions
+      const list = $('#sessionList');
+      if(list){
+        const sessions = [...state.sessions]
+          .sort((a,b)=> (a.createdAt < b.createdAt ? 1 : -1))
+          .filter(s=>{
+            if(!q) return true;
+            return [s.type, s.when, s.trigger, s.thought, s.need, s.reframe, s.action]
+              .filter(Boolean).join(' ').toLowerCase().includes(q);
+          });
+
+        list.innerHTML = '';
+        if(!sessions.length){
+          list.innerHTML = `<p class="muted text-sm">لا يوجد جلسات مطابقة.</p>`;
+        } else {
+          sessions.forEach(s=>{
+            const card = document.createElement('div');
+            card.className = 'rounded-2xl bg-black/20 ring-soft p-4';
+            const dt = new Date(s.createdAt);
+            const header = `
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="font-extrabold">${emotionLabel(s.type)} <span class="muted text-sm">(${s.intensity}/10)</span></p>
+                  <p class="muted text-xs">${dt.toLocaleString('ar-EG')}</p>
+                </div>
+                <button class="no-print px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-400/20 hover:bg-rose-500/25 transition text-xs font-bold">حذف</button>
+              </div>
+            `;
+            card.innerHTML = header;
+            const btn = card.querySelector('button');
+            btn.addEventListener('click', ()=>{
+              if(!confirm('حذف هذه الجلسة؟')) return;
+              state.sessions = state.sessions.filter(x=>x.id!==s.id);
+              saveState();
+              toast('تم', 'اتحذفت الجلسة.');
+              renderAll();
+            });
+            const body = document.createElement('div');
+            body.className = 'mt-3 text-sm leading-7 subtle';
+            body.innerHTML = `
+              ${s.when ? `<p><span class="muted">متى:</span> ${escapeHtml(s.when)}</p>` : ''}
+              ${s.trigger ? `<p><span class="muted">الموقف:</span> ${escapeHtml(s.trigger)}</p>` : ''}
+              ${s.thought ? `<p><span class="muted">الفكرة:</span> ${escapeHtml(s.thought)}</p>` : ''}
+              ${s.need ? `<p><span class="muted">الاحتياج:</span> ${escapeHtml(s.need)}</p>` : ''}
+              <hr class="border-white/10 my-2">
+              <p><span class="muted">إعادة صياغة:</span> ${escapeHtml(s.reframe || '—')}</p>
+              <p><span class="muted">فعل صغير:</span> ${escapeHtml(s.action || '—')}</p>
+            `;
+            card.appendChild(body);
+            list.appendChild(card);
+          });
+        }
+      }
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    // ============================
+    // Render all
+    // ============================
+    function renderAll(){
+      renderHeader();
+      renderQuickCards();
+      renderCharts();
+      renderPlan();
+      renderHabits();
+      renderHistory();
+    }
+
+    // ============================
+    // Init + Events
+    // ============================
+    function init(){
+      // set defaults
+      $('#checkinDate').value = isoDate();
+      $('#habitDate').value = isoDate();
+
+      // ranges
+      ['#spiritual','#sport','#social','#mental'].forEach(id=>$(id).addEventListener('input', syncRangeLabels));
+      syncRangeLabels();
+
+      // emotion intensity label
+      $('#emoIntensity').addEventListener('input', ()=> $('#emoIntensityVal').textContent = $('#emoIntensity').value);
+
+      // Checkin save
+      $('#checkinForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const entry = {
+          id: crypto.randomUUID(),
+          date: $('#checkinDate').value || isoDate(),
+          period: $('#checkinPeriod').value,
+          mood: $('#checkinMood').value,
+          spiritual: Number($('#spiritual').value),
+          sport: Number($('#sport').value),
+          social: Number($('#social').value),
+          mental: Number($('#mental').value),
+          wins: $('#wins').value.trim(),
+          challenges: $('#challenges').value.trim(),
+          notes: $('#notes').value.trim(),
+          createdAt: new Date().toISOString()
+        };
+        state.checkins.push(entry);
+        saveState();
+        toast('تم الحفظ', 'اتسجل تقييمك بنجاح.');
+        $('#wins').value = '';
+        $('#challenges').value = '';
+        $('#notes').value = '';
+        $('#suggestionBox').classList.add('hidden');
+        renderAll();
+        setTab('dashboard');
+      });
+
+      // Suggestions
+      $('#btnSuggest').addEventListener('click', ()=>{
+        const input = {
+          spiritual: Number($('#spiritual').value),
+          sport: Number($('#sport').value),
+          social: Number($('#social').value),
+          mental: Number($('#mental').value),
+          mood: $('#checkinMood').value
+        };
+        const items = suggestStepsFromScores(input);
+        const ul = $('#suggestionList');
+        ul.innerHTML = '';
+        items.forEach(t=>{
+          const li = document.createElement('li');
+          li.textContent = `• ${t}`;
+          ul.appendChild(li);
+        });
+        $('#suggestionBox').classList.remove('hidden');
+      });
+
+      // Habits date
+      $('#habitDate').addEventListener('change', ()=>{
+        renderHabits();
+        renderQuickCards();
+      });
+
+      // Add habit
+      $('#habitAddForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const name = $('#habitNewName').value.trim();
+        const category = $('#habitNewCategory').value;
+        if(!name){ toast('تنبيه', 'اكتب اسم العادة أولًا.'); return; }
+        const id = `custom_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        state.habitsCatalog.push({ id, name, category, core: false });
+        saveState();
+        $('#habitNewName').value = '';
+        toast('تم', 'اتضافت عادة جديدة.');
+        renderHabits();
+        renderHabitsStats();
+      });
+
+      // Emotion generate
+      $('#btnGenerate').addEventListener('click', ()=>{
+        const input = {
+          type: $('#emoType').value,
+          intensity: Number($('#emoIntensity').value),
+          when: $('#emoWhen').value.trim(),
+          trigger: $('#emoTrigger').value.trim(),
+          thought: $('#emoThought').value.trim(),
+          body: $('#emoBody').value.trim(),
+          need: $('#emoNeed').value.trim(),
+        };
+        const plan = generateEmotionPlan(input);
+        $('#emoReframe').textContent = plan.reframe;
+        $('#emoAction').textContent = plan.action;
+        $('#emoQuestion').textContent = plan.question;
+        $('#emoFaith').textContent = plan.faith;
+        $('#emoOutput').classList.remove('hidden');
+        toast('جاهز', 'اقرأ الخطة… وخد فعل صغير الآن.');
+      });
+
+      // Breath
+      $('#btnBreath').addEventListener('click', breath60);
+      $('#btnQuickReset').addEventListener('click', breath60);
+
+      // Save session
+      $('#btnSaveSession').addEventListener('click', ()=>{
+        // Ensure plan exists
+        const input = {
+          type: $('#emoType').value,
+          intensity: Number($('#emoIntensity').value),
+          when: $('#emoWhen').value.trim(),
+          trigger: $('#emoTrigger').value.trim(),
+          thought: $('#emoThought').value.trim(),
+          body: $('#emoBody').value.trim(),
+          need: $('#emoNeed').value.trim(),
+        };
+        const plan = $('#emoOutput').classList.contains('hidden') ? generateEmotionPlan(input) : {
+          reframe: $('#emoReframe').textContent,
+          action: $('#emoAction').textContent,
+          question: $('#emoQuestion').textContent,
+          faith: $('#emoFaith').textContent
+        };
+
+        const session = {
+          id: crypto.randomUUID(),
+          ...input,
+          ...plan,
+          createdAt: new Date().toISOString()
+        };
+        state.sessions.push(session);
+        saveState();
+        toast('تم الحفظ', 'اتسجلت الجلسة في السجل.');
+        renderHistory();
+        setTab('history');
+      });
+
+      // Search
+      $('#search').addEventListener('input', renderHistory);
+
+      // Plan
+      $('#btnSavePlan').addEventListener('click', ()=>{
+        const p1 = $('#plan1').value.trim();
+        const p2 = $('#plan2').value.trim();
+        const p3 = $('#plan3').value.trim();
+        const items = [p1,p2,p3].filter(Boolean);
+        state.plan = { date: isoDate(), items };
+        saveState();
+        toast('تم', 'اتحفظت خطتك لليوم.');
+        renderPlan();
+      });
+      $('#btnClearPlan').addEventListener('click', ()=>{
+        state.plan = { date: '', items: [] };
+        saveState();
+        $('#plan1').value = '';
+        $('#plan2').value = '';
+        $('#plan3').value = '';
+        toast('تم', 'اتمسحت الخطة.');
+        renderPlan();
+      });
+
+      // Profile modal
+      function openProfile(){
+        $('#inpName').value = state.profile.name || '';
+        $('#inpAge').value = state.profile.age || 16;
+        $('#inpBio').value = state.profile.bio || '';
+        $('#profileModal').classList.remove('hidden');
+      }
+      function closeProfile(){ $('#profileModal').classList.add('hidden'); }
+
+      $('#btnOpenProfile').addEventListener('click', openProfile);
+      $('#btnCloseProfile').addEventListener('click', closeProfile);
+      $('#profileModal').addEventListener('click', (e)=>{ if(e.target === $('#profileModal').firstElementChild) closeProfile(); });
+      $('#btnSaveProfile').addEventListener('click', ()=>{
+        state.profile.name = $('#inpName').value.trim() || '—';
+        state.profile.age = Number($('#inpAge').value) || 16;
+        state.profile.bio = $('#inpBio').value.trim();
+        saveState();
+        closeProfile();
+        toast('تم', 'اتحفظت بياناتك.');
+        renderHeader();
+      });
+
+      // Backup
+      $('#btnBackup').addEventListener('click', async ()=>{
+        const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+        const text = await blob.text();
+        try {
+          await navigator.clipboard.writeText(text);
+          toast('نسخ احتياطي', 'اتنسخت البيانات (JSON) للحافظة.');
+        } catch {
+          // fallback: download
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `ali-dashboard-backup-${isoDate()}.json`;
+          a.click();
+          toast('نسخ احتياطي', 'تم تنزيل ملف النسخة الاحتياطية.');
+        }
+      });
+
+      // Restore
+      function openRestore(){
+        $('#restoreText').value = '';
+        $('#restoreModal').classList.remove('hidden');
+      }
+      function closeRestore(){ $('#restoreModal').classList.add('hidden'); }
+
+      $('#btnRestore').addEventListener('click', openRestore);
+      $('#btnCloseRestore').addEventListener('click', closeRestore);
+      $('#btnDoRestore').addEventListener('click', ()=>{
+        const text = $('#restoreText').value.trim();
+        if(!text){ toast('تنبيه', 'الصق JSON أولًا.'); return; }
+        try {
+          const parsed = JSON.parse(text);
+          state = {
+            ...structuredClone(defaultState),
+            ...parsed,
+            profile: { ...structuredClone(defaultState.profile), ...(parsed.profile || {}) },
+          };
+          saveState();
+          closeRestore();
+          toast('تم', 'اتعمل استيراد بنجاح.');
+          renderAll();
+        } catch {
+          toast('خطأ', 'الـ JSON غير صالح.');
+        }
+      });
+
+      // Reset
+      $('#btnReset').addEventListener('click', ()=>{
+        if(!confirm('متأكد؟ ده هيمسح كل بياناتك المخزنة على المتصفح.')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        state = structuredClone(defaultState);
+        saveState();
+        toast('تم', 'اتعمل إعادة ضبط.');
+        renderAll();
+        setTab('dashboard');
+      });
+
+      // Print
+      $('#btnPrint').addEventListener('click', ()=>window.print());
+
+      // Toast close
+      $('#toastClose').addEventListener('click', ()=>$('#toast').classList.add('hidden'));
+
+      // Quick reset button just uses breath
+      $('#btnQuickReset').addEventListener('click', ()=>{
+        $('#affirmation').textContent = `${state.profile.name || 'أنا'} أقدر أتحسن خطوة خطوة… وربنا شايف مجهودي.`;
+      });
+
+      // Ensure plan inputs show saved values
+      renderPlan();
+
+      // Init tabs
+      initTabs();
+
+      // First render
+      renderAll();
+
+      // Responsive redraw charts on resize
+      window.addEventListener('resize', ()=>{ renderCharts(); });
+    }
+
+    init();
+  </script>
+</body>
+</html>
